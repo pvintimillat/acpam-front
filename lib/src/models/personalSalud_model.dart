@@ -73,7 +73,7 @@ class PersonalSaludModel {
 
     LatLng getLatLng() {
 
-      String _valor = '40.724233047051705,-74.00731459101564';
+      String _valor = '-2.8968987,-78.9373582';
       final lalo = _valor.split(',');
       final lat = double.parse(lalo[0]);
       final lng = double.parse(lalo[1]);

@@ -26,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
           FocusScope.of(context).requestFocus(new FocusNode());
         },
         child: Stack(
+          alignment: Alignment.center,
           children: <Widget>[
             _crearFondo(context, size),
             _loginForm(context, size),
@@ -54,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
             children: <Widget>[
               Center(
                 child: SvgPicture.asset('assets/images/acamDark.svg', height: size.height*0.25) ,
-              )
+              ),
             ],
           )
         )
@@ -186,8 +187,8 @@ class _LoginPageState extends State<LoginPage> {
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)
             ),
-            width: size.width * 0.1,
-            height: size.width * 0.1,
+            width: size.width * 0.2,
+            height: size.width * 0.2,
       );
     } else {
       return Container();

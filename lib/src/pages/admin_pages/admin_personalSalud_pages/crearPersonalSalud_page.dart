@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:acpam/src/bloc/mostrarMapaAlert.dart';
+import 'package:acpam/src/preferencias_usuario/preferencias_usuario.dart';
+import 'package:acpam/src/providers/coordTranslate_provider.dart';
+
 import 'package:acpam/src/utils/utils.dart' as utils;
 import 'package:acpam/src/providers/personalSalud_provider.dart';
 
 import 'package:acpam/src/models/personalSalud_model.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong/latlong.dart';
 
 class CrearPersonalSaludPage extends StatefulWidget {
   const CrearPersonalSaludPage({Key key}) : super(key: key);
@@ -15,31 +17,32 @@ class CrearPersonalSaludPage extends StatefulWidget {
 }
 
 class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
-  
-  final map = new MapController();
-
   final formKey = GlobalKey<FormState>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  final personalSaludProvider = new PersonalSaludProvider();
+  
+  final prefs = new PreferenciasUsuario();
 
+  final personalSaludProvider = new PersonalSaludProvider();
+  final coordsTranslateProvider = new CoordTranslate();
+  
   PersonalSaludModel personalSalud = new PersonalSaludModel();
+  TextEditingController controlConsultorio = new TextEditingController();
 
   String _tipoID = 'Cédula';
   bool _seleccion = false;
-  bool _mapa = false;
   bool _guardando = false;
   String _estudios = '';
-  LatLng _coords;
+  bool loading = false;
 
   @override
-  void initState() { 
-    _coords = personalSalud.getLatLng();
+  void initState() {
+    controlConsultorio.text = 'Sin dirección';
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-
+    
     final String especialidad = ModalRoute.of(context).settings.arguments;
     final size = MediaQuery.of(context).size;
 
@@ -47,60 +50,84 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
     personalSalud.especialidad = especialidad;
 
     return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: Text('Nuevo especialista'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.check_circle),
-            onPressed: (_guardando) ? null : _submit,
-          ),
-          IconButton(
-            icon: Icon(Icons.cancel),
-            onPressed: (_guardando) ? null : _reset,
-          )
-        ],
-      ),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(new FocusNode());
-        },
-        child: SingleChildScrollView(
-            child: Container(
-                padding: EdgeInsets.all(size.height * 0.05),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    children: <Widget>[
-                      _crearAvatar(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearNombres(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearApellidos(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearEmail(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearTipoID(),
-                      SizedBox(height: size.height * 0.02),
-                      _crearNumeroID(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearEstudios(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearEspecialidad(context, size, especialidad),
-                      SizedBox(height: size.height * 0.02),
-                      _crearSenescyt(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearCelular(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _seleccionarMapa(context, size),
-                      SizedBox(height: size.height * 0.02),
-                      _crearConsultorio(context, size),
-                    ],
-                  ),
-                ))),
-      ),
+        key: scaffoldKey,
+        appBar: AppBar(
+          title: Text('Nuevo especialista'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.check_circle),
+              onPressed: (_guardando) ? null : _submit,
+            ),
+            IconButton(
+              icon: Icon(Icons.cancel),
+              onPressed: (_guardando) ? null : _reset,
+            )
+          ],
+        ),
+        body: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            _formulario(context, size),
+            _mostrarLoading(size)
+          ],
+        ));
+  }
+
+  Widget _formulario(BuildContext context, Size size) {
+    
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).requestFocus(new FocusNode());
+      },
+      child: SingleChildScrollView(
+          child: Container(
+              padding: EdgeInsets.all(size.height * 0.05),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  children: <Widget>[
+                    _crearAvatar(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearNombres(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearApellidos(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearEmail(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearTipoID(),
+                    SizedBox(height: size.height * 0.02),
+                    _crearNumeroID(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearEstudios(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearEspecialidad(context, size, personalSalud.especialidad),
+                    SizedBox(height: size.height * 0.02),
+                    _crearSenescyt(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearCelular(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _crearConsultorio(context, size),
+                    SizedBox(height: size.height * 0.02),
+                    _botonVerMapa(context, size),
+                  ],
+                ),
+              ))),
     );
   }
+
+  Widget _mostrarLoading(Size size) {
+    if (loading) {
+      return Container(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)
+            ),
+            width: size.width * 0.15,
+            height: size.width * 0.15,
+      );
+    } else {
+      return Container();
+    }
+  }         
 
   Widget _crearAvatar(BuildContext context, Size size) {
     return GestureDetector(
@@ -313,21 +340,10 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
     );
   }
 
-  Widget _seleccionarMapa(BuildContext context, Size size) {
-    return SwitchListTile(
-      title: Text('Coordenadas / Mapa'),
-      value: _mapa,
-      onChanged: (value) {
-        setState(() {
-          _mapa = value;
-        });
-        _mostrarMapaAlert(context, size);
-      },
-    );
-  }
-
   Widget _crearConsultorio(BuildContext context, Size size) {
     return TextFormField(
+      controller: controlConsultorio,
+      enabled: false,
       textCapitalization: TextCapitalization.sentences,
       cursorColor: Theme.of(context).primaryColor,
       decoration: InputDecoration(
@@ -340,72 +356,36 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
     );
   }
 
-  void _mostrarMapaAlert(BuildContext context, Size size) {
-    showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) {
-          return Align(
-            alignment: Alignment.center,
-            child: Container(
-              decoration: BoxDecoration(
-                  border: new Border.all(
-                      color: Theme.of(context).primaryColor,
-                      width: 5.0,
-                      style: BorderStyle.solid),
-                  borderRadius: new BorderRadius.all(new Radius.circular(5.0))),
-              height: size.height * 0.75,
-              width: size.width * 0.95,
-              child: FlutterMap(
-                  mapController: map,
-                  options: MapOptions(
-                      center: _coords,
-                      zoom: 10,
-                      onPositionChanged: (posicion, valor) {
-                        print(valor);
-                        if (valor) {
-                          setState(() {
-                            _coords = posicion.center;
-                            print(_coords);
-                          });
-                        }
-                      }),
-                  layers: [
-                    _crearMapa(),
-                    _crearMarcadores(),
-                  ]),
-            ),
-          );
+  Widget _botonVerMapa(BuildContext context, Size size) {
+    return RaisedButton.icon(
+        label: Text('Ver mapa'),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(size.height * 0.02)),
+        color: Theme.of(context).primaryColor,
+        textColor: Colors.white,
+        icon: Icon(Icons.map),
+        onPressed: () async {
+          bool cierreVerMapa = await showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) {
+            return MostrarMapaAlert();
+          });
+          if (cierreVerMapa) {
+            setState(() {
+              loading = true;
+            });
+            String _direccion = await coordsTranslateProvider.latlng2Dir();
+            setState(() {
+              controlConsultorio.text = _direccion;
+              loading = false;
+            });
+          } else {
+            setState(() {
+              controlConsultorio.text = 'Sin dirección';
+            });
+          }
         });
-  }
-
-  _crearMapa() {
-    return TileLayerOptions(
-      urlTemplate: "https://api.tiles.mapbox.com/v4/"
-          '{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}',
-      additionalOptions: {
-        'accessToken':
-            'pk.eyJ1IjoicHZpbnRpbWlsbGEiLCJhIjoiY2syMmFieDVlMTh4ZjNjbWY2MmxiMHZzcSJ9.3YaQE1SExlROXabNB8Hfeg',
-        'id': 'mapbox.streets',
-      },
-    );
-  }
-
-  _crearMarcadores() {
-    return MarkerLayerOptions(markers: <Marker>[
-      Marker(
-        height: 70.0,
-        width: 70.0,
-        point: _coords,
-        builder: (context) => Container(
-          child: Icon(
-            Icons.location_on,
-            size: 50.0,
-            color: Theme.of(context).primaryColor,
-          ),
-        )
-      )
-    ]);
   }
 
   void _submit() {

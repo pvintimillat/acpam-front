@@ -33,6 +33,15 @@ class PreferenciasUsuario {
   set especialidad( String value ) {
     _prefs.setString('especialidad', value);
   }
+
+  // GET y SET de las coords
+  get coords {
+    return _prefs.getString('coords') ?? 'Sin dirección';
+  }
+
+  set coords( String value ) {
+    _prefs.setString('coords', value);
+  }
   
   // GET y SET de la última página
   get ultimaPagina {
