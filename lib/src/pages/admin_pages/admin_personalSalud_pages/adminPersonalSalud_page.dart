@@ -1,4 +1,9 @@
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/adminListaPersonalSalud_page.dart';
+import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalEnfermeria_page.dart';
+import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalGerontologia_page.dart';
+import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalMedicina_page.dart';
+import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalOdontologia_page.dart';
+import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalPsicologia_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:acpam/src/preferencias_usuario/preferencias_usuario.dart';
@@ -13,7 +18,7 @@ class AdminPersonalSaludPage extends StatefulWidget {
 class _AdminPersonalSaludPageState extends State<AdminPersonalSaludPage> {
 
   int currentIndex = 2;
-  List<String> tipo = ['Enfermeria', 'Medicina', 'Gerontología', 'Odontología', 'Psicología'];
+  List<String> tipo = ['Enfermería', 'Medicina', 'Gerontología', 'Odontología', 'Psicología'];
   final prefs = new PreferenciasUsuario();
 
   @override
@@ -21,34 +26,30 @@ class _AdminPersonalSaludPageState extends State<AdminPersonalSaludPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Personal de ${tipo[currentIndex]}'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon( Icons.group_add),
+            onPressed: () => Navigator.pushNamed(context, 'crearPersonalSalud', arguments: tipo[currentIndex]),
+          )
+        ],
       ),
       drawer: _crearMenuLateral(context),
       body: _callPage(currentIndex),
       bottomNavigationBar: _crearBottomNavigationBar(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor,
-        child: Icon( Icons.group_add),
-        onPressed: () {
-          Navigator.pushNamed(context, 'crearPersonalSalud', arguments: tipo[currentIndex]);
-        }
-      ),
     );
   }
 
   Widget _callPage(int paginaActual) {
 
     switch(paginaActual) {
-      case 0: prefs.especialidad = tipo[paginaActual]; break;
-      case 1: prefs.especialidad = tipo[paginaActual]; break;
-      case 2: prefs.especialidad = tipo[paginaActual]; break;
-      case 3: prefs.especialidad = tipo[paginaActual]; break;
-      case 5: prefs.especialidad = tipo[paginaActual]; break;
+      case 0: return PersonalEnfermeriaPage(); break;
+      case 1: return PersonalMedicinaPage(); break;
+      case 2: return PersonalGerontologiaPage(); break;
+      case 3: return PersonalOdontologiaPage(); break;
+      case 4: return PersonalPsicologiaPage(); break;
       
-      default: prefs.especialidad = tipo[paginaActual]; break;
+      default: return PersonalGerontologiaPage(); break;
     }
-
-    return AdminListaPersonalSaludPage();
   }
 
   Widget _crearBottomNavigationBar() {
@@ -67,7 +68,7 @@ class _AdminPersonalSaludPageState extends State<AdminPersonalSaludPage> {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.favorite),
-          title: Text('General')
+          title: Text('Medicina')
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.accessible),

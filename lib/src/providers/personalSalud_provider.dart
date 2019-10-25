@@ -11,13 +11,15 @@ class PersonalSaludProvider {
   final String _url = 'http://67.207.85.200:3000';
   final prefs = new PreferenciasUsuario();
 
-  Future<bool> crearPersonalSalud(PersonalSaludModel personalSalud) async {
+  Future<List<String>> crearPersonalSalud(PersonalSaludModel personalSalud) async {
 
     // final sinConexion = 'Algo ha salido mal. Por favor, revise su conexión a Internet.';
     
     ConnectivityResult _connectivityResult = await (Connectivity().checkConnectivity());
 
-    if (_connectivityResult != ConnectivityResult.mobile && _connectivityResult != ConnectivityResult.wifi) return false;
+    final List<String> datos = ['Error', 'Por favor, revise su conexión a Internet'];
+
+    if (_connectivityResult != ConnectivityResult.mobile && _connectivityResult != ConnectivityResult.wifi) return datos;
 
     Map<String, String> requestHeaders = {
       'Content-type': 'application/x-www-form-urlencoded',
@@ -30,13 +32,18 @@ class PersonalSaludProvider {
     final resp = await http.post(url, body: personalSalud.toJson(), headers:requestHeaders);
 
     final decodedData = json.decode(resp.body);
+    if (decodedData['ok']) {
+      datos[0] = 'Ok';
+      datos[1] = decodedData['mensaje'];
+    } else {
+      datos[0] = 'Error';
+      datos[1] = decodedData['err']['message'];
+    }
 
-    print(decodedData);
-
-    return true;
+    return datos;
   }
 
-  Future<List<PersonalSaludModel>> cargarPersonalSalud(String tipoEspecialidad) async {
+  Future<List<PersonalSaludModel>> cargarPersonalSalud(String tipoEspecialidad, int desde, int limite) async {
 
     ConnectivityResult _connectivityResult = await (Connectivity().checkConnectivity());
 
@@ -48,7 +55,7 @@ class PersonalSaludProvider {
       'token': '${prefs.token}'
     };
     
-    final url = '$_url/personalSalud?especialidad=$tipoEspecialidad';
+    final url = '$_url/personalSalud?especialidad=$tipoEspecialidad&desde=$desde&limite=$limite';
     final resp = await http.get(url, headers:requestHeaders);
 
     final Map<String, dynamic> decodedData = json.decode(resp.body);

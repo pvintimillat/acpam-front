@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'package:acpam/src/bloc/mostrarMapaAlert.dart';
+import 'package:acpam/src/utils/mostrarMapaAlert.dart';
 import 'package:acpam/src/preferencias_usuario/preferencias_usuario.dart';
 import 'package:acpam/src/providers/coordTranslate_provider.dart';
 
@@ -19,30 +21,30 @@ class CrearPersonalSaludPage extends StatefulWidget {
 class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
   final formKey = GlobalKey<FormState>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  
+
   final prefs = new PreferenciasUsuario();
 
   final personalSaludProvider = new PersonalSaludProvider();
   final coordsTranslateProvider = new CoordTranslate();
-  
+
   PersonalSaludModel personalSalud = new PersonalSaludModel();
-  TextEditingController controlConsultorio = new TextEditingController();
+  TextEditingController _controlConsultorio = new TextEditingController();
 
   String _tipoID = 'Cédula';
-  bool _seleccion = false;
   bool _guardando = false;
   String _estudios = '';
-  bool loading = false;
+  bool _loading = false;
+
+  List<String> _opcionesID = ['Cédula', 'Pasaporte'];
 
   @override
   void initState() {
-    controlConsultorio.text = 'Sin dirección';
+    _controlConsultorio.text = 'Sin dirección';
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    
     final String especialidad = ModalRoute.of(context).settings.arguments;
     final size = MediaQuery.of(context).size;
 
@@ -56,25 +58,27 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.check_circle),
-              onPressed: (_guardando) ? null : _submit,
+              onPressed: (_guardando) ? () => null : () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                _submit(context, size);
+                },
             ),
             IconButton(
               icon: Icon(Icons.cancel),
-              onPressed: (_guardando) ? null : _reset,
+              onPressed: (_guardando) ? () => null : () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+                _reset();
+              },
             )
           ],
         ),
         body: Stack(
           alignment: Alignment.center,
-          children: <Widget>[
-            _formulario(context, size),
-            _mostrarLoading(size)
-          ],
+          children: <Widget>[_formulario(context, size), _mostrarLoading(size)],
         ));
   }
 
   Widget _formulario(BuildContext context, Size size) {
-    
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(new FocusNode());
@@ -94,21 +98,18 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
                     SizedBox(height: size.height * 0.02),
                     _crearEmail(context, size),
                     SizedBox(height: size.height * 0.02),
-                    _crearTipoID(),
-                    SizedBox(height: size.height * 0.02),
                     _crearNumeroID(context, size),
                     SizedBox(height: size.height * 0.02),
                     _crearEstudios(context, size),
                     SizedBox(height: size.height * 0.02),
-                    _crearEspecialidad(context, size, personalSalud.especialidad),
+                    _crearEspecialidad(
+                        context, size, personalSalud.especialidad),
                     SizedBox(height: size.height * 0.02),
                     _crearSenescyt(context, size),
                     SizedBox(height: size.height * 0.02),
                     _crearCelular(context, size),
                     SizedBox(height: size.height * 0.02),
                     _crearConsultorio(context, size),
-                    SizedBox(height: size.height * 0.02),
-                    _botonVerMapa(context, size),
                   ],
                 ),
               ))),
@@ -116,18 +117,18 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
   }
 
   Widget _mostrarLoading(Size size) {
-    if (loading) {
+    if (_loading) {
       return Container(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)
-            ),
-            width: size.width * 0.15,
-            height: size.width * 0.15,
+        child: CircularProgressIndicator(
+            valueColor:
+                AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor)),
+        width: size.width * 0.15,
+        height: size.width * 0.15,
       );
     } else {
       return Container();
     }
-  }         
+  }
 
   Widget _crearAvatar(BuildContext context, Size size) {
     return GestureDetector(
@@ -207,42 +208,54 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
     );
   }
 
-  Widget _crearTipoID() {
-    return SwitchListTile(
-      title: Text('Cédula / Pasaporte'),
-      value: _seleccion,
-      onChanged: (value) {
-        if (value) {
-          _tipoID = 'Pasaporte';
-        } else {
-          _tipoID = 'Cédula';
-        }
-        setState(() {
-          _seleccion = value;
-        });
-      },
-    );
+  List<DropdownMenuItem<String>> getOpcionesID() {
+    List<DropdownMenuItem<String>> lista = new List();
+
+    _opcionesID.forEach((opcion) {
+      lista.add(DropdownMenuItem(child: Text(opcion), value: opcion));
+    });
+
+    return lista;
   }
 
   Widget _crearNumeroID(BuildContext context, Size size) {
-    return TextFormField(
-      keyboardType: TextInputType.number,
-      textCapitalization: TextCapitalization.sentences,
-      cursorColor: Theme.of(context).primaryColor,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(size.height * 0.02),
+    return Row(
+      children: <Widget>[
+        Flexible(
+          child: TextFormField(
+            keyboardType: TextInputType.number,
+            textCapitalization: TextCapitalization.sentences,
+            cursorColor: Theme.of(context).primaryColor,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(size.height * 0.02),
+              ),
+              labelText: 'Identificación',
+            ),
+            validator: (value) {
+              if (utils.isCedula(value, _tipoID)) {
+                return null;
+              } else {
+                return 'El número de cédula ingresado no es válido.';
+              }
+            },
+            onSaved: (value) => personalSalud.numeroId = value,
+          ),
         ),
-        labelText: '$_tipoID',
-      ),
-      validator: (value) {
-        if (utils.isCedula(value, _tipoID)) {
-          return null;
-        } else {
-          return 'El número de cédula ingresado no es válido.';
-        }
-      },
-      onSaved: (value) => personalSalud.numeroId = value,
+        SizedBox(width: size.width*0.03),
+        Container(
+          alignment: Alignment.centerRight,
+          child: DropdownButton(
+            value: _tipoID,
+            items: getOpcionesID(),
+            onChanged: (opt) {
+              setState(() {
+                _tipoID = opt;
+              });
+            },
+          ),
+        )
+      ],
     );
   }
 
@@ -257,12 +270,11 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
           borderRadius: BorderRadius.circular(size.height * 0.02),
         ),
         labelText: 'Estudios',
-        counter: Text('${_estudios.length}'),
       ),
       validator: (value) {
         if (value != '') {
-          if ((value.length < 6) | (value.length > 140)) {
-            return 'Esta descripción debe poseer de 6 a 140 caracteres.';
+          if ((value.length < 6)) {
+            return 'Esta descripción debe poseer mínimo 6 caracteres.';
           } else {
             return null;
           }
@@ -341,18 +353,26 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
   }
 
   Widget _crearConsultorio(BuildContext context, Size size) {
-    return TextFormField(
-      controller: controlConsultorio,
-      enabled: false,
-      textCapitalization: TextCapitalization.sentences,
-      cursorColor: Theme.of(context).primaryColor,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(size.height * 0.02),
+    return Row(
+      children: <Widget>[
+        Flexible(
+          child: TextFormField(
+            controller: _controlConsultorio,
+            enabled: false,
+            textCapitalization: TextCapitalization.sentences,
+            cursorColor: Theme.of(context).primaryColor,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(size.height * 0.02),
+              ),
+              labelText: 'Consultorio',
+            ),
+            onSaved: (value) => personalSalud.consultorio = value,
+          ),
         ),
-        labelText: 'Consultorio',
-      ),
-      onSaved: (value) => personalSalud.consultorio = value,
+        SizedBox(width: size.width*0.03),
+        _botonVerMapa(context, size),
+      ],
     );
   }
 
@@ -366,55 +386,69 @@ class _CrearPersonalSaludPageState extends State<CrearPersonalSaludPage> {
         icon: Icon(Icons.map),
         onPressed: () async {
           bool cierreVerMapa = await showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) {
-            return MostrarMapaAlert();
-          });
+              context: context,
+              barrierDismissible: true,
+              builder: (_) {
+                return MostrarMapaAlert();
+              });
           if (cierreVerMapa) {
             setState(() {
-              loading = true;
+              _loading = true;
             });
             String _direccion = await coordsTranslateProvider.latlng2Dir();
             setState(() {
-              controlConsultorio.text = _direccion;
-              loading = false;
+              _controlConsultorio.text = _direccion;
+              _loading = false;
             });
           } else {
             setState(() {
-              controlConsultorio.text = 'Sin dirección';
+              _controlConsultorio.text = 'Sin dirección';
             });
           }
         });
   }
 
-  void _submit() {
+  void _submit(BuildContext context, Size size) async {
     if (!formKey.currentState.validate()) return;
+
+    if (_controlConsultorio.text == 'Sin dirección') {
+      utils.mostrarAlerta(context, 'Por favor, seleccione una dirección de consultorio válida', size);
+      return;
+    }
 
     formKey.currentState.save();
 
     setState(() {
       _guardando = true;
+      _loading = true;
     });
 
-    personalSaludProvider.crearPersonalSalud(personalSalud);
+    final List<String> resp = await personalSaludProvider.crearPersonalSalud(personalSalud);
 
     setState(() {
       _guardando = false;
+      _loading = false;
     });
-    mostarSnackbar('Usuario creado exitosamente');
 
-    Navigator.pop(context);
+
+    if (resp[0] == 'Ok') {
+      mostarSnackbar('Usuario creado exitosamente');
+      _reset();
+
+    } else {
+      utils.mostrarAlerta(context, resp[1], size);
+    }
+
   }
 
   void _reset() {
     formKey.currentState.reset();
     setState(() {
-      _seleccion = false;
+      _controlConsultorio.text = 'Sin dirección';
     });
   }
 
-  void mostarSnackbar(String mensaje) {
+  Future mostarSnackbar(String mensaje) async {
     final snackbar = SnackBar(
       content: Text(mensaje),
       duration: Duration(milliseconds: 1500),

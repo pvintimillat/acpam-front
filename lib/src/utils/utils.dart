@@ -38,7 +38,7 @@ void mostrarAlerta(BuildContext context, String mensaje, Size size) {
               textColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5.0)),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.pop(context),
             )
           ],
         );

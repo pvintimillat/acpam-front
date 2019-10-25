@@ -92,7 +92,7 @@ class _MostrarMapaAlertState extends State<MostrarMapaAlert> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(size.height * 0.02)),
       color: Colors.red,
       textColor: Colors.white,
-      icon: Icon(Icons.check_circle),
+      icon: Icon(Icons.cancel),
       onPressed: () {
         prefs.coords = 'Sin dirección';
         Navigator.pop(context, false);

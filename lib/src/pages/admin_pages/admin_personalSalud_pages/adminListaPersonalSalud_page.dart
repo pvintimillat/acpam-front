@@ -17,7 +17,7 @@ class AdminListaPersonalSaludPage extends StatelessWidget {
   Widget _crearListado() {
     
     return FutureBuilder(
-      future: personalSaludProvider.cargarPersonalSalud(prefs.especialidad),
+      future: personalSaludProvider.cargarPersonalSalud(prefs.especialidad, 0, 5),
       builder: (BuildContext context, AsyncSnapshot<List<PersonalSaludModel>> snaphot) {
         if (snaphot.hasData) {
           final especialistas = snaphot.data;
