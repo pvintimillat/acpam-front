@@ -1,4 +1,5 @@
 import 'package:acpam/src/models/personalSalud_model.dart';
+import 'package:acpam/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:acpam/src/providers/personalSalud_provider.dart';
@@ -36,9 +37,12 @@ class _PersonalEnfermeriaPageState extends State<PersonalEnfermeriaPage> {
 
     personalSaludProvider.cargarPersonalSalud('Enfermería', _desde, _limite).then((result) {
       setState(() {
-        print(result);
           _especialistas = result;
           _cargando = false;
+          if (_especialistas[0].id == 'Error') {
+            mostrarAlerta(context, _especialistas[1].id, MediaQuery.of(context).size);
+            _especialistas.clear();
+          }
       });
     });
   }
@@ -53,7 +57,7 @@ class _PersonalEnfermeriaPageState extends State<PersonalEnfermeriaPage> {
   Widget build(BuildContext context) {
 
     final size = MediaQuery.of(context).size;
-    print(_especialistas);
+    
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[

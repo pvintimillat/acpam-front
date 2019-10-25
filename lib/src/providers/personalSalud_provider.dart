@@ -46,8 +46,9 @@ class PersonalSaludProvider {
   Future<List<PersonalSaludModel>> cargarPersonalSalud(String tipoEspecialidad, int desde, int limite) async {
 
     ConnectivityResult _connectivityResult = await (Connectivity().checkConnectivity());
+    final List<PersonalSaludModel> errorConexion = [new PersonalSaludModel(id: 'Error'), new PersonalSaludModel(id: 'Por favor, revise su conexión a Internet')];
 
-    if (_connectivityResult != ConnectivityResult.mobile && _connectivityResult != ConnectivityResult.wifi) return [];
+    if (_connectivityResult != ConnectivityResult.mobile && _connectivityResult != ConnectivityResult.wifi) return errorConexion;
     
     Map<String, String> requestHeaders = {
       'Content-type': 'application/x-www-form-urlencoded',

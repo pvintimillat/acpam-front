@@ -1,4 +1,5 @@
 import 'package:acpam/src/models/personalSalud_model.dart';
+import 'package:acpam/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:acpam/src/providers/personalSalud_provider.dart';
@@ -34,11 +35,15 @@ class _PersonalGerontologiaPageState extends State<PersonalGerontologiaPage> {
       }
     });
 
-    personalSaludProvider.cargarPersonalSalud('Medicina', _desde, _limite).then((result) {
+    personalSaludProvider.cargarPersonalSalud('Gerontología', _desde, _limite).then((result) {
       setState(() {
         print(result);
           _especialistas = result;
           _cargando = false;
+          if (_especialistas[0].id == 'Error') {
+            mostrarAlerta(context, _especialistas[1].id, MediaQuery.of(context).size);
+            _especialistas.clear();
+          }
       });
     });
   }
@@ -82,7 +87,7 @@ class _PersonalGerontologiaPageState extends State<PersonalGerontologiaPage> {
     _desde = 0;
     _limite = 10;
 
-    _especialistas = await personalSaludProvider.cargarPersonalSalud('Medicina', _desde, _limite);
+    _especialistas = await personalSaludProvider.cargarPersonalSalud('Gerontología', _desde, _limite);
   }
 
   Widget _crearItem(PersonalSaludModel personalSalud) {
@@ -139,7 +144,7 @@ class _PersonalGerontologiaPageState extends State<PersonalGerontologiaPage> {
       duration: Duration(milliseconds: 250),
     );
     _agregar10();
-    final List<PersonalSaludModel> especialistas = await personalSaludProvider.cargarPersonalSalud('Medicina', _desde, _limite);
+    final List<PersonalSaludModel> especialistas = await personalSaludProvider.cargarPersonalSalud('Gerontología', _desde, _limite);
     especialistas.forEach((especialista) {
       _especialistas.add(especialista);
     });

@@ -1,10 +1,9 @@
-import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/adminListaPersonalSalud_page.dart';
+import 'package:flutter/material.dart';
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalEnfermeria_page.dart';
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalGerontologia_page.dart';
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalMedicina_page.dart';
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalOdontologia_page.dart';
 import 'package:acpam/src/pages/admin_pages/admin_personalSalud_pages/personalPsicologia_page.dart';
-import 'package:flutter/material.dart';
 
 import 'package:acpam/src/preferencias_usuario/preferencias_usuario.dart';
 

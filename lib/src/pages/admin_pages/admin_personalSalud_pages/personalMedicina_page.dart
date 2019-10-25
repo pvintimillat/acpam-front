@@ -1,4 +1,5 @@
 import 'package:acpam/src/models/personalSalud_model.dart';
+import 'package:acpam/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:acpam/src/providers/personalSalud_provider.dart';
@@ -39,6 +40,10 @@ class _PersonalMedicinaPageState extends State<PersonalMedicinaPage> {
         print(result);
           _especialistas = result;
           _cargando = false;
+          if (_especialistas[0].id == 'Error') {
+            mostrarAlerta(context, _especialistas[1].id, MediaQuery.of(context).size);
+            _especialistas.clear();
+          }
       });
     });
   }

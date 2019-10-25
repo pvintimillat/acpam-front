@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ACPAM',
-        initialRoute: 'adminPersonalSalud',
+        initialRoute: 'login',
         routes: getApplicationToutes(),
         theme: ThemeData(
           primaryColor: Color.fromRGBO(30, 43, 60, 1.0),
